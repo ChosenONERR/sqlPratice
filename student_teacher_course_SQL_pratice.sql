@@ -1,31 +1,3 @@
-/* 错误集锦示例：
-*/
-# F1：当把如下子查询作为一个临时表t时，会报错：
-SELECT * FROM
-(SELECT * FROM rank_test r1, rank_test r2, rank_test r3) t; # 报错：Duplicate column name XXX
-SELECT id FROM rank_test r1, rank_test r2, rank_test r3；# 报错：Column 'id' in field list is ambiguous
-# 解决办法1：因为这样并没有把它当作成一个表
-SELECT * FROM rank_test r1, rank_test r2, rank_test r3; # 正确
-# 解决办法2：明确指定 或者 取别名
-SELECT r1.id FROM rank_test r1, rank_test r2, rank_test r3；# 明确指定
-SELECT * FROM
-(SELECT r1.id AS id1, r1.`value` AS v1, r2.id AS id2, r2.`value` AS v2, r3.id AS id3, r3.`value` AS v3 
-FROM rank_test r1, rank_test r2, rank_test r3) t; # 取别名
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 -- 建表语句
 # 学生表
 CREATE TABLE Student(sid VARCHAR(10),sname VARCHAR(10),sage DATETIME,ssex NVARCHAR(10));
@@ -261,7 +233,22 @@ SELECT * FROM student s1 WHERE s1.`sid` NOT IN (
 	) ;
 
 
-
+-- Q11：查询至少有一门课与学号为"01"的同学所学相同的同学的信息
+/*思路
+1. 涉及的表：成绩表，学生表，
+2. 表连接关系：sid
+3. 问题拆分：
+（1）查询学号为“01”的同学所学过的课程
+SELECT s1.`cid` FROM sc s1 WHERE s1.`sid`='01';
+（2）对（1）使用 IN，找出sid
+SELECT DISTINCT s2.`sid` FROM sc s2 WHERE s2.`cid` IN(SELECT s1.`cid` FROM sc s1 WHERE s1.`sid`='01') AND s2.`sid` != '01';
+*/
+SELECT * FROM student s3 WHERE s3.`sid` IN (
+	SELECT DISTINCT s2.`sid` FROM sc s2 
+		WHERE s2.`cid` IN(
+			SELECT s1.`cid` FROM sc s1 WHERE s1.`sid`='01') 
+		AND s2.`sid` != '01'
+);
 
 
 
